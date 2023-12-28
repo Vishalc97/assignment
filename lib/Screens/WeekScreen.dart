@@ -42,8 +42,8 @@ class _WeekScreenState extends State<WeekScreen> {
     return _getWeekRowsList(_index);
   }
   _getWeekRowsList(int index) {
-    String _getDay = getDay(_rangeStart ?? DateTime.now(), index);
-    String _getMonth = getMonth(_rangeStart ?? DateTime.now(), index);
+    String _getDay = getDay(widget.rangeStart ?? DateTime.now(), index);
+    String _getMonth = getMonth(widget.rangeStart ?? DateTime.now(), index);
     int totalValue = hdrValue + techValue + followupValue;
 
 

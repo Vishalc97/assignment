@@ -6,6 +6,7 @@ abstract class ConstantColor{
   static const Color black = Colors.black;
   static const Color red = Colors.redAccent;
   static const Color grey = Colors.grey;
+  static const Color grey400 = Color(0xFFF5F5F5);
   static const Color warmgrey = Color.fromRGBO(238, 238, 238, 1);
   static const Color blueBorder = Colors.blue;
   static final Color blueshade = Colors.blue.shade800;

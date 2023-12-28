@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:calenderselection/utilities/constantColors.dart';
+import 'package:intl/intl.dart';
 
 
 class MyCalender extends StatefulWidget {
@@ -80,6 +81,22 @@ class _MyCalenderState extends State<MyCalender> {
       appBar: appBar(),
       body: Column(
         children: [
+
+        /*  Container(
+            decoration: BoxDecoration(
+              color: ConstantColor.grey400
+            ),
+            padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                createText(label: '${DateFormat('LLLL').format(DateTime.now())} ${DateFormat('d').format(DateTime.now())}'),
+                Icon(Icons.arrow_drop_down)
+              ],
+            ),
+          ),*/
+
+
           isDaySelected
               ? Container(
                   height: 2,
@@ -87,7 +104,7 @@ class _MyCalenderState extends State<MyCalender> {
                 )
               : Container(),
           tableCalender(),
-
+          // getCenterLine(),
           totalDays != 0 && isWeekSelected
               ? _tabBarMenuList()
               :  _selectedDay != null && isDaySelected
@@ -133,6 +150,17 @@ class _MyCalenderState extends State<MyCalender> {
     );
   }
 
+  Widget getCenterLine() {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.only(top: 14),
+        width: 50,
+        height: 3,
+        color: ConstantColor.grey,
+      ),
+    );
+  }
+  
   customDayWeekSwitch() {
     double circularRadius = 6.0;
 
@@ -212,85 +240,139 @@ class _MyCalenderState extends State<MyCalender> {
     );
   }
 
+  bool isSwipeDown = false;
   tableCalender() {
-    return TableCalendar(
-      daysOfWeekVisible: true,
-      firstDay: DateTime.now(),
-      lastDay: DateTime.utc(
-        2030,
-        12,
+    return Container(
+      decoration: BoxDecoration(
+        color: ConstantColor.grey400
       ),
-      headerStyle: HeaderStyle(
-        titleCentered: true
-      ),
-      focusedDay: _focusedDay,
-      calendarStyle: CalendarStyle(
-        todayTextStyle: TextStyle(
-          color: ConstantColor.black
-        ),
-        rangeHighlightColor: ConstantColor.lightskyblue,
-        selectedDecoration: BoxDecoration(
-          color: ConstantColor.blueBorder,
-          shape: BoxShape.circle
-        ),
-        todayDecoration: BoxDecoration(
-          color: ConstantColor.lightskyblue,
-              shape: BoxShape.circle
-        ),
-        rangeStartDecoration: BoxDecoration(
-          color: ConstantColor.blueBorder,
-            shape: BoxShape.circle
-        ),
-        rangeEndDecoration: BoxDecoration(
-          color: ConstantColor.blueBorder,
-            shape: BoxShape.circle
-        ),
-      ),
-      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-      rangeStartDay: _rangeStart,
-      rangeEndDay: _rangeEnd,
-      calendarFormat: _calendarFormat,
-      availableCalendarFormats: {
-        CalendarFormat.week: 'Week',
-      },
-      rangeSelectionMode:
-          isWeekSelected ? RangeSelectionMode.toggledOn : RangeSelectionMode.toggledOff,
-      shouldFillViewport: false,
-      onDaySelected: (selectedDay, focusedDay) {
-        if (!isSameDay(_selectedDay, selectedDay)) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-            _rangeStart = null; // Important to clean those
-            _rangeEnd = null;
-            _rangeSelectionMode = RangeSelectionMode.toggledOff;
-          });
-        }
-      },
-      onRangeSelected: (start, end, focusedDay) {
-        setState(() {
-          _selectedDay = null;
-          _focusedDay = focusedDay;
-          _rangeStart = start;
-          _rangeEnd = end;
-          _rangeSelectionMode = RangeSelectionMode.toggledOn;
-          totalDays = daysBetween(_rangeStart ?? DateTime.now(),
-              _rangeEnd != null ? (_rangeEnd ?? _focusedDay) : _focusedDay);
-        });
-      },
-      onFormatChanged: (format) {
-        if (_calendarFormat != format) {
-          setState(() {
-            _calendarFormat = format;
-          });
-        }
-      },
-      onPageChanged: (focusedDay) {
-        _focusedDay = focusedDay;
-      },
-      weekNumbersVisible: false,
+      child: Listener(
+        onPointerMove: (moveEvent){
+          // Note: Sensitivity is integer used when you don't want to mess up vertical drag
+          int sensitivity = 8;
+          if (moveEvent.delta.dy > sensitivity) {
+            // Down Swipe
+            setState(() {
+              _calendarFormat = CalendarFormat.month;
+              isSwipeDown = true;
+            });
+          } else if(moveEvent.delta.dy < -sensitivity){
+            // Up Swipe
+            setState(() {
+              _calendarFormat = CalendarFormat.week;
+              isSwipeDown = false;
+            });
+          }
+        },
+        child: Column(
+          children: [
+            TableCalendar(
+              headerVisible: true,
+              daysOfWeekVisible: true,
+              weekendDays: const [DateTime.sunday],
+              startingDayOfWeek: StartingDayOfWeek.monday,
 
+              daysOfWeekStyle: DaysOfWeekStyle(
+                dowTextFormatter: (date, locale) => DateFormat.E(locale).format(date)[0],
+                weekendStyle: TextStyle(
+                  color: ConstantColor.orange
+                )
+              ),
+              firstDay: DateTime.now(),
+              lastDay: DateTime.utc(
+                2030,
+                12,
+              ),
+              headerStyle: HeaderStyle(
+                leftChevronVisible: false,
+                rightChevronVisible: false,
+                formatButtonVisible: false,
+                titleCentered: true
+              ),
+              focusedDay: _focusedDay,
+              calendarStyle: CalendarStyle(
+                weekendTextStyle: TextStyle(color: ConstantColor.orange),
+                todayTextStyle: TextStyle(
+                  color: ConstantColor.black
+                ),
+                rangeHighlightColor: ConstantColor.lightskyblue,
+                selectedDecoration: BoxDecoration(
+                  color: ConstantColor.blueBorder,
+                  shape: BoxShape.circle
+                ),
+                todayDecoration: BoxDecoration(
+                  // color: ConstantColor.lightskyblue,
+                      shape: BoxShape.circle,
+                  border: Border.all(color: ConstantColor.blueBorder,width: 2)
+                ),
+                rangeStartDecoration: BoxDecoration(
+                  color: ConstantColor.blueBorder,
+                    shape: BoxShape.circle
+                ),
+                rangeEndDecoration: BoxDecoration(
+                  color: ConstantColor.blueBorder,
+                    shape: BoxShape.circle
+                ),
+              ),
+              selectedDayPredicate: (day) => isSameDay(_selectedDay , day),
+              rangeStartDay: _rangeStart,
+              rangeEndDay: _rangeEnd,
+              calendarFormat: _calendarFormat,
+              rangeSelectionMode:
+                  isWeekSelected ? RangeSelectionMode.toggledOn : RangeSelectionMode.toggledOff,
+              shouldFillViewport: false,
+              onDaySelected: (selectedDay, focusedDay) {
+                if (!isSameDay(_selectedDay, selectedDay)) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                    _rangeStart = null; // Important to clean those
+                    _rangeEnd = null;
+                    _rangeSelectionMode = RangeSelectionMode.toggledOff;
+                  });
+                }
+              },
+              onRangeSelected: (start, end, focusedDay) {
+                setState(() {
+                  _selectedDay = null;
+                  _focusedDay = focusedDay;
+                  _rangeStart = start;
+                  _rangeEnd = end;
+                  _rangeSelectionMode = RangeSelectionMode.toggledOn;
+                  totalDays = daysBetween(_rangeStart ?? DateTime.now(),
+                      _rangeEnd != null ? (_rangeEnd ?? _focusedDay) : _focusedDay);
+                });
+              },
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+              weekNumbersVisible: false,
 
+              calendarBuilders: CalendarBuilders(
+
+                headerTitleBuilder: (context, day) => isWeekSelected
+                  ? WeekHeaderBuilder( _rangeStart ?? DateTime.now())
+                  : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    DayHeaderBuilder('${DateFormat("MMM").format(_rangeStart ?? DateTime.now())}'),
+                    DayHeaderBuilder('${DateFormat("y").format(_rangeStart ?? DateTime.now())}')
+                  ],
+                ),
+              ),
+
+            ),
+            getCenterLine(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -368,13 +450,54 @@ class _MyCalenderState extends State<MyCalender> {
             itemCount: isWeekSelected ? totalDays : userDetails.length,
             itemBuilder: (BuildContext, index) => isWeekSelected
               ? WeekScreen(
-                rangeStart: _rangeStart ?? DateTime.now(),
+                rangeStart: _rangeStart!,
                 index: index) /*_getWeekRowsList(index)*/
               : DayScreen(userEntry: userDetails[index]),
           );
         },
         onPositionChange: (int value) {},
         onScroll: (double value) {},
+      ),
+    );
+  }
+
+
+
+  DayHeaderBuilder(String label){
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(Icons.chevron_left),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  createText(label: label),
+                  SizedBox(width: 5,),
+                  Icon(Icons.arrow_drop_down_outlined),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
+  }
+
+  WeekHeaderBuilder(DateTime dateTime){
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          createText(label: "${DateFormat("MMMM").format(_rangeStart ?? dateTime)} ${_rangeStart?.day ?? dateTime.day}",fontweight: FontWeight.w400),
+          const Icon(Icons.arrow_drop_down_outlined),
+        ],
       ),
     );
   }
